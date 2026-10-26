@@ -1,0 +1,36 @@
+RewriteEngine On
+
+# Bloquear rango IP atacante
+RewriteCond %{REMOTE_ADDR} ^186\.109\.196\.
+RewriteRule .* - [F,L]
+
+# Bloquear bots y scanners
+RewriteCond %{HTTP_USER_AGENT} ^$  [OR]
+RewriteCond %{HTTP_USER_AGENT} (masscan|nikto|sqlmap|nmap|zgrab|dirbuster|gobuster|wfuzz|hydra|medusa|Go-http-client/1\.1|libwww-perl) [NC]
+RewriteRule .* - [F,L]
+
+# Bloquear métodos peligrosos
+RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK|CONNECT) [NC]
+RewriteRule .* - [F,L]
+
+# Bloquear inyección SQL/XSS
+RewriteCond %{QUERY_STRING} (union.*select|drop.*table|eval\(|base64_decode|<script|javascript:|\.\./)} [NC]
+RewriteRule .* - [F,L]
+
+# Bloquear archivos sensibles y shells
+RewriteRule \.(env|log|sql|bak|sh|elf|py|htpasswd)$ - [F,L]
+RewriteRule ^(wp-login|xmlrpc)\.php$ - [F,L]
+RewriteRule ^(shell|webshell|cmd|c99|r57)\.php$ - [F,L]
+
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header unset X-Powered-By
+</IfModule>
+
+LimitRequestBody 10485760
+
+
